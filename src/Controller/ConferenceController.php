@@ -13,7 +13,7 @@ class ConferenceController extends AbstractController
      */
     public function index(): Response
     {
-        return new Response("UNDER CONSTRUCTION");
+        return $this->render('conference/index.html.twig');
 
     }
 }

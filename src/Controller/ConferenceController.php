@@ -35,7 +35,7 @@ class ConferenceController extends AbstractController
 
     /**
      * Undocumented function
-     * @Route("/conference/{id}", name="conference")
+     * @Route("/conference/{slug}", name="conference")
      * @return Response
      */
     public function show(

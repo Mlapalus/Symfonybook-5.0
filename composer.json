@@ -58,10 +58,10 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
-        ],
-        "compile": [
-            "symfony console doctrine:migrations:migrate"
         ]
+        //"compile": [
+        //    "symfony console doctrine:migrations:migrate"
+        //]
     },
     "conflict": {
         "symfony/symfony": "*"

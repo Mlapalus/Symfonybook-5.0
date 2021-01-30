@@ -13,6 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use App\Renderer\Renderer;
+use App\SpamChecker;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
@@ -51,7 +52,8 @@ class ConferenceController extends AbstractController
         Request $request,
         Conference $conference,
         CommentRepository $commentRepository,
-        string $photoDir
+        string $photoDir,
+        SpamChecker $spamChecker
     ): Response
     {
 
@@ -72,6 +74,16 @@ class ConferenceController extends AbstractController
             }
 
             $this->em->persist($comment);
+            $context = [
+                'user_ip' => $request->getClientIp(),
+                'user_agent' => $request->headers->get('user-agent'),
+                'referrer' => $request->headers->get('referer'),
+                'permalink' => $request->getUri()
+            ];
+            if (1 === $spamChecker->getSpamScore($comment, $context)) {
+                throw new \RuntimeException('Spam, go away !');
+            }
+
             $this->em->flush();
 
             return $this->redirectToRoute('conference', ['slug' => $conference->getSlug()]);

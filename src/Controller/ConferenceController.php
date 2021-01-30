@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Comment;
 use Twig\Environment;
 use App\Entity\Conference;
+use App\Form\CommentFormType;
 use App\Repository\CommentRepository;
 use App\Repository\ConferenceRepository;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,14 +13,20 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use App\Renderer\Renderer;
+use Doctrine\ORM\EntityManagerInterface;
 
 class ConferenceController extends AbstractController
 {
     private $twig;
+    private $em;
 
-    public function __construct(Renderer $twig)
+    public function __construct(
+        Renderer $twig,
+        EntityManagerInterface $em
+        )
     {
         $this->twig = $twig;
+        $this->em = $em;
     }
     /**
      * @Route("/", name="homepage")
@@ -44,6 +52,20 @@ class ConferenceController extends AbstractController
         CommentRepository $commentRepository
     ): Response
     {
+
+        $comment = new Comment();
+        $form = $this->createForm(CommentFormType::class, $comment);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $comment->setConference($conference);
+
+            $this->em->persist($comment);
+            $this->em->flush();
+
+            return $this->redirectToRoute('conference', ['slug' => $conference->getSlug()]);
+        }
+
         $offset = max(0, $request->query->getInt('offset', 0));
         $paginator = $commentRepository->getCommentPaginator($conference, $offset);
 
@@ -53,6 +75,7 @@ class ConferenceController extends AbstractController
                 'comments' => $paginator,
                 'previous' => $offset - CommentRepository::PAGINATOR_PER_PAGE,
                 'next' => min(count($paginator), $offset + CommentRepository::PAGINATOR_PER_PAGE),
+                'comment_form' => $form->createView()
             ]));
     }
 }

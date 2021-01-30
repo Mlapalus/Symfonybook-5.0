@@ -135,6 +135,12 @@ class Conference
         return $this->city. ' ' . $this->year;
     }
 
+        
+    /**
+     * getSlug
+     *
+     * @return string
+     */
     public function getSlug(): ?string
     {
         return $this->slug;
